@@ -64,4 +64,3 @@ then start ramping up the ISO from 100, until at 5:35pm (astronomical twilight) 
 fully ramped up to ISO 6400.  The remaining exposures will use the final exposure values (ISO 6400,
 f/2.4, 15s).
 
-TEST
