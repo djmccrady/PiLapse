@@ -52,6 +52,7 @@ Here are our variables:
     - Final exposure (after astro twilight about EV-7, i.e. ISO 6400, f/2.4, 15s)
     - Max ISO: 6400 (get this from the final exposure above)
     - Max exposure time: 15s (get this from the final exposure above)
+    - Twilight start/end times
 
 The duration of the timelapse is 2h30m, and with an exposure every 20s that's 450 exposures.
 

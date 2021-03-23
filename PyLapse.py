@@ -78,7 +78,14 @@ class Exposure:
             return self.fRatio
         return None
 
-
+class Timelapse:
+    def __init__(self, startTime, endTime, startExposure, endExposure, twilightTime, direction):
+        self.startTime = startTime
+        self.endTime = endTime
+        self.startExposure = startExposure
+        self.endExposure = endExposure
+        self.twilightTime = twilightTime
+        self.direction = direction
 
 
 class Camera:
