@@ -17,6 +17,10 @@
 import time
 import math
 
+
+def closest_index(lst, K):
+    return min(range(len(lst)), key = lambda i: abs(lst[i]-K))
+
 class Exposure:
     # Standard ISO, fstop, and shutter values in 1/3 increments, in order of increasing exposure value
     __ISO_values = [ 100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000, 5000, 6400, 8000, 10000, 12800, 16000, 20000, 25600 ]
@@ -24,15 +28,28 @@ class Exposure:
     __shutter_values = [ 1.0/8000.0, 1.0/6400.0, 1.0/5000.0, 1.0/4000.0, 1.0/3200.0, 1.0/2500.0, 1.0/2000.0, 1.0/1600.0, 1.0/1250.0, 1.0/1000.0, 1.0/800.0, 1.0/640.0, 1.0/500.0, 1.0/400.0, 1.0/320.0, 1.0/250.0, 1.0/200.0, 1.0/160.0, 1.0/125.0, 1.0/100.0, 1.0/80.0, 1.0/60.0, 1.0/50.0, 1.0/40.0, 1.0/30.0, 1.0/25.0, 1.0/20.0, 1.0/15.0, 1.0/13.0, 1.0/10.0, 1.0/8.0, 1.0/6.0, 1.0/5.0, 1.0/4.0, 1.0/3.0, 1.0/2.5, 1.0/2.0, 1.0/1.6, 1.0/1.3, 1.0, 1.3, 1.6, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 13.0, 15.0, 20.0, 25.0, 30.0 ]
 
     def __init__(self, fRatio, shutterSeconds, iso):
-        self.fRatio = fRatio
-        self.shutterSeconds = shutterSeconds
-        self.iso = iso
+        self._ix_fRatio = closest(self.__fstop_values, fRatio)
+        self._ix_shutter = closest(self.__shutter_values, shutterSeconds)
+        self._ix_iso = closest(self.__ISO_values, iso)
+
+    @property
+    def ISO(self):
+        return self.__ISO_values[self._ix_iso]
+
+    @property
+    def shutter(self):
+        return self.__shutter_values[self._ix_shutter]
+
+    @property
+    def fRatio(self):
+        return self.__fstop_values[self._ix_fRatio]
 
     def __str__(self):
-        return "ISO %s, shutter %s, f/ratio %s" % (self.iso, self.shutterSeconds, self.fRatio)
+        return "ISO %s, shutter %s, f/ratio %s" % (self.ISO, self.shutter, self.fRatio)
 
     def GetExposureValue(self):
-        return math.log(math.pow(self.fRatio, 2) / self.shutterSeconds / (self.iso / 100), 2)
+        return math.log(math.pow(self.fRatio, 2) / self.shutter / (self.ISO / 100), 2)
+
 
 
 
