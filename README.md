@@ -63,3 +63,5 @@ speed will have reached 15s, the maximum we've specified to keep the stars sharp
 then start ramping up the ISO from 100, until at 5:35pm (astronomical twilight) we will have
 fully ramped up to ISO 6400.  The remaining exposures will use the final exposure values (ISO 6400,
 f/2.4, 15s).
+
+TEST
