@@ -17,8 +17,6 @@
 import time
 import math
 
-
-
 class Exposure:
     # Standard ISO, fstop, and shutter values in 1/3 increments, in order of increasing exposure value
     __ISO_values = [ 100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000, 5000, 6400, 8000, 10000, 12800, 16000, 20000, 25600 ]
@@ -87,6 +85,16 @@ class Timelapse:
         self.twilightTime = twilightTime
         self.direction = direction
 
+    def Start(self):
+        currentTime = time.time()
+        if currentTime < startTime:
+            duration = startTime - currentTime
+            print("Waiting to start at ", time.strftime("%H:%M:%S", time.localtime(startTime)), " (waiting ", round(duration, 1), "s)")
+            time.sleep(duration)
+
+        print("Starting timelapse")
+
+
 
 class Camera:
     def __init__(self, name, baseISO, maxISO):
@@ -101,11 +109,6 @@ def StartExposure(exposureSeconds):
     print("Taking exposure: ", exposureSeconds)
     time.sleep(exposureSeconds)
 
-startTime = time.time()
-endTime = startTime + 120  # 2 minutes in the future
-
-exposureSeconds = 15
-intervalSeconds = 20
 
 camera = Camera("EOS R5", 100, 6400)
 exposure = Exposure(2.8, 20, 4000)
@@ -115,13 +118,16 @@ print("EV for ", exposure, " is ", exposure.GetExposureValue())
 exposure.AdjustISO(-3)
 print("EV(ISO-3) for ", exposure, " is ", exposure.GetExposureValue())
 
+exposure.AdjustShutter(-3)
+print("EV(shutter-3) for ", exposure, " is ", exposure.GetExposureValue())
+
+exposure.AdjustFRatio(-3)
+print("EV(fRatio-3) for ", exposure, " is ", exposure.GetExposureValue())
 
 
-print('Start time = ', time.ctime(startTime))
-print('End time   = ', time.ctime(endTime))
-
-while time.time() < endTime:
-    extraWaitAfter = intervalSeconds - exposureSeconds
-    StartExposure(exposureSeconds)
-    print("Waiting after exposure for ", extraWaitAfter)
-    time.sleep(extraWaitAfter)
+startTime = time.time() + 15
+endTime = startTime + 240
+startExposure = Exposure(2.8, 1.0/500.0, 100)
+endExposure = Exposure(2.8, 20, 4000)
+timelapse = Timelapse(startTime, endTime, startExposure, endExposure, time.time(), -1)
+timelapse.Start()
