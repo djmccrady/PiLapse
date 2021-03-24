@@ -82,7 +82,7 @@ class Timelapse:
     """
     The twilight times chosen for civil and astro should be chosen as follows:
        - For sunsets, beginning of civil twilight and end of astro twilight
-       - For sunrises, end of astro twilight, and end of civil twilight ends
+       - For sunrises, beginning of astro twilight, and end of civil twilight ends
     From these times, the direction (whether exposure increases [sunset] or decreases [sunrise]) is
     automatically chosen.
     """
