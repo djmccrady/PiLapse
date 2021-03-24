@@ -44,7 +44,7 @@ class Exposure:
         return self.__fstop_values[self._ix_fRatio]
 
     def __str__(self):
-        return "ISO %s, shutter %s, f/ratio %s" % (self.ISO, self.shutter, self.fRatio)
+        return "ISO %s, %ss, f/%s" % (self.ISO, self.shutter, self.fRatio)
 
     def GetExposureValue(self):
         return math.log(math.pow(self.fRatio, 2) / self.shutter / (self.ISO / 100), 2)
