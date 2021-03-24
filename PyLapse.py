@@ -77,13 +77,45 @@ class Exposure:
         return None
 
 class Timelapse:
-    def __init__(self, startTime, endTime, startExposure, endExposure, twilightTime, direction):
+    __INTERVAL_EXTRA = 2  # 2 seconds extra to allow the camera buffer read
+
+    """
+    The twilight times chosen for civil and astro should be chosen as follows:
+       - For sunsets, beginning of civil twilight and end of astro twilight
+       - For sunrises, end of astro twilight, and end of civil twilight ends
+    From these times, the direction (whether exposure increases [sunset] or decreases [sunrise]) is
+    automatically chosen.
+    """
+    def __init__(self, startTime, endTime, startExposure, endExposure, civilTwilight, astroTwilight):
         self.startTime = startTime
         self.endTime = endTime
         self.startExposure = startExposure
         self.endExposure = endExposure
-        self.twilightTime = twilightTime
-        self.direction = direction
+        self.civilTwilight = civilTwilight
+        self.astroTwilight = astroTwilight
+
+        # interval between shots is the longest exposure time + __INTERVAL_EXTRA to allow camera buffer read
+        self.shootingInterval = round(max(startExposure.shutter, endExposure.shutter)) + Timelapse.__INTERVAL_EXTRA
+        self._computeAdjustmentInterval()
+
+    def _computeAdjustmentInterval(self):
+        twilightDuration = self.astroTwilight - self.civilTwilight
+
+        # If astro twilight comes after civil twilight, then it's a sunset (direction = 1), otherwise
+        # it's a sunrise (direction = -1)
+        if twilightDuration > 0:
+            self.direction = 1
+        else:
+            self.direction = -1
+
+        exposureDiff = abs(startExposure.GetExposureValue() - endExposure.GetExposureValue())
+        twilightDuration = abs(twilightDuration)
+
+        self.adjustmentInterval = (twilightDuration * 24) / (math.ceil(exposureDiff * 3 * 3) / 3) / 1440
+        self.adjustmentInterval *= 60  # convert to seconds
+
+    def __str__(self):
+        return "Shooting interval %s, adjustment interval %s, direction %s, startExposure %s, endExposure %s" % (self.shootingInterval, self.adjustmentInterval, self.direction, self.startExposure, self.endExposure)
 
     def Start(self):
         currentTime = time.time()
@@ -124,10 +156,23 @@ print("EV(shutter-3) for ", exposure, " is ", exposure.GetExposureValue())
 exposure.AdjustFRatio(-3)
 print("EV(fRatio-3) for ", exposure, " is ", exposure.GetExposureValue())
 
+ts = (2021, 3, 24, 20, 0, 0, 2, 83, -1)
+startTime = time.mktime(ts)
 
-startTime = time.time() + 15
-endTime = startTime + 240
-startExposure = Exposure(2.8, 1.0/500.0, 100)
-endExposure = Exposure(2.8, 20, 4000)
-timelapse = Timelapse(startTime, endTime, startExposure, endExposure, time.time(), -1)
-timelapse.Start()
+ts = (2021, 3, 24, 23, 0, 0, 2, 83, -1)
+endTime = time.mktime(ts)
+
+ts = (2021, 3, 24, 20, 42, 0, 2, 83, -1)
+civilStart = time.mktime(ts)
+
+ts = (2021, 3, 24, 22, 4, 0, 2, 83, -1)
+astroEnd = time.mktime(ts)
+
+
+
+startExposure = Exposure(2.8, 1.6, 100)
+endExposure = Exposure(2.8, 18, 4000)
+
+timelapse = Timelapse(startTime, endTime, startExposure, endExposure, civilStart, astroEnd)
+print("Timelapse: ", timelapse)
+#timelapse.Start()
