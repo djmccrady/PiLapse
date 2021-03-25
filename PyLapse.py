@@ -80,35 +80,27 @@ class Timelapse:
     __INTERVAL_EXTRA = 2  # 2 seconds extra to allow the camera buffer read
 
     """
-    The twilight times chosen for civil and astro should be chosen as follows:
+    The twilight times chosen for beginTwilight and endTwilight should be as follows:
        - For sunsets, beginning of civil twilight and end of astro twilight
-       - For sunrises, beginning of astro twilight, and end of civil twilight ends
-    From these times, the direction (whether exposure increases [sunset] or decreases [sunrise]) is
-    automatically chosen.
+       - For sunrises, beginning of astro twilight, and end of civil twilight
     """
-    def __init__(self, startTime, endTime, startExposure, endExposure, civilTwilight, astroTwilight):
+    def __init__(self, startTime, endTime, startExposure, endExposure, beginTwilight, endTwilight, direction):
         self.startTime = startTime
         self.endTime = endTime
         self.startExposure = startExposure
         self.endExposure = endExposure
-        self.civilTwilight = civilTwilight
-        self.astroTwilight = astroTwilight
+        self.beginTwilight = beginTwilight
+        self.endTwilight = endTwilight
+        self.direction = direction
 
         # interval between shots is the longest exposure time + __INTERVAL_EXTRA to allow camera buffer read
         self.shootingInterval = round(max(startExposure.shutter, endExposure.shutter)) + Timelapse.__INTERVAL_EXTRA
         self._computeAdjustmentInterval()
 
     def _computeAdjustmentInterval(self):
-        twilightDuration = self.astroTwilight - self.civilTwilight
+        twilightDuration = self.endTwilight - self.beginTwilight
 
-        # If astro twilight comes after civil twilight, then it's a sunset (direction = 1), otherwise
-        # it's a sunrise (direction = -1)
-        if twilightDuration > 0:
-            self.direction = 1
-        else:
-            self.direction = -1
-
-        exposureDiff = abs(startExposure.GetExposureValue() - endExposure.GetExposureValue())
+        exposureDiff = abs(self.startExposure.GetExposureValue() - self.endExposure.GetExposureValue())
         twilightDuration = abs(twilightDuration)
 
         self.adjustmentInterval = (twilightDuration * 24) / (math.ceil(exposureDiff * 3 * 3) / 3) / 1440
@@ -117,6 +109,15 @@ class Timelapse:
     def __str__(self):
         return "Shooting interval %s, adjustment interval %s, direction %s, startExposure %s, endExposure %s" % (self.shootingInterval, self.adjustmentInterval, self.direction, self.startExposure, self.endExposure)
 
+    """
+    Start the timelapse.
+        - If the start time is in the future, wait until it's time to start.
+        - Set the next adjustment time to be the first twilight begin plus the adjustment interval
+        - Start shooting at the starting exposure
+            - Wait the extra interval after each shot.
+        - If the current time is greater-or-equal-to the next adjustment time, adjust the exposure in the appropriate direction
+            - Set the next adjustment time to be the previous adjustment time plust the adjustment interval
+    """
     def Start(self):
         currentTime = time.time()
         if currentTime < startTime:
@@ -124,10 +125,39 @@ class Timelapse:
             print("Waiting to start at ", time.strftime("%H:%M:%S", time.localtime(startTime)), " (waiting ", round(duration, 1), "s)")
             time.sleep(duration)
 
-        print("Starting timelapse")
+        nextAdjustmentTime = self.beginTwilight + self.adjustmentInterval
+        print("Starting timelapse... first adjustment at ", time.strftime("%H:%M:%S", time.localtime(nextAdjustmentTime)))
+
+        currentExposure = startExposure
+
+    """
+    Adjust the exposure in the designated direction.
+
+    If direction is positive (a sunset, so we are increasing our exposure value):
+        - If the shutter speed is less than the max shutter speed, increase that.  Otherwise,
+        - If the ISO is less than the max ISO, increase that.  Otherwise,
+        - Keep the previous exposure.
+
+    If direction is negative (a sunrise, so we are decreasing our exposure value):
+        - If the ISO is greater than the min ISO, decrease that.  Otherwise,
+        - If the shutter speed is greater than the min shutter speed, decrease that.  Otherwise,
+        - Keep the previous exposure.
+    """
+    def _AdjustExposure(self, exposure):
+        if self.direction > 0:   # sunset, exposures increase
+            if exposure.shutter < max(self.startExposure.shutter, self.endExposure.shutter):
+                exposure.AdjustShutter(self.direction)
+            elif exposure.ISO < max(self.startExposure.ISO, self.endExposure.ISO):
+                exposure.AdjustISO(self.direction)
+        else:                    # sunrise, exposures decrease 
+            if exposure.ISO > min(self.startExposure.ISO, self.endExposure.ISO):
+                exposure.AdjustISO(self.direction)
+            elif exposure.shutter > min(self.startExposure.shutter, self.endExposure.shutter):
+                exposure.AdjustShutter(self.direction)
+            
 
 
-
+# TODO: not sure we need this
 class Camera:
     def __init__(self, name, baseISO, maxISO):
         self.name = name
@@ -136,43 +166,51 @@ class Camera:
 
 
 
-
+# TODO: Get rid of this
 def StartExposure(exposureSeconds):
     print("Taking exposure: ", exposureSeconds)
     time.sleep(exposureSeconds)
 
 
-camera = Camera("EOS R5", 100, 6400)
-exposure = Exposure(2.8, 20, 4000)
+def TestExposureAdjustments():
+    camera = Camera("EOS R5", 100, 6400)
+    exposure = Exposure(2.8, 20, 4000)
 
-print("EV for ", exposure, " is ", exposure.GetExposureValue())
+    print("EV for ", exposure, " is ", exposure.GetExposureValue())
 
-exposure.AdjustISO(-3)
-print("EV(ISO-3) for ", exposure, " is ", exposure.GetExposureValue())
+    exposure.AdjustISO(-3)
+    print("EV(ISO-3) for ", exposure, " is ", exposure.GetExposureValue())
 
-exposure.AdjustShutter(-3)
-print("EV(shutter-3) for ", exposure, " is ", exposure.GetExposureValue())
+    exposure.AdjustShutter(-3)
+    print("EV(shutter-3) for ", exposure, " is ", exposure.GetExposureValue())
 
-exposure.AdjustFRatio(-3)
-print("EV(fRatio-3) for ", exposure, " is ", exposure.GetExposureValue())
-
-ts = (2021, 3, 24, 20, 0, 0, 2, 83, -1)
-startTime = time.mktime(ts)
-
-ts = (2021, 3, 24, 23, 0, 0, 2, 83, -1)
-endTime = time.mktime(ts)
-
-ts = (2021, 3, 24, 20, 42, 0, 2, 83, -1)
-civilStart = time.mktime(ts)
-
-ts = (2021, 3, 24, 22, 4, 0, 2, 83, -1)
-astroEnd = time.mktime(ts)
+    exposure.AdjustFRatio(-3)
+    print("EV(fRatio-3) for ", exposure, " is ", exposure.GetExposureValue())
 
 
+def TestTimelapseComputations():
+    ts = (2021, 3, 24, 20, 0, 0, 2, 83, -1)
+    startTime = time.mktime(ts)
 
-startExposure = Exposure(2.8, 1.6, 100)
-endExposure = Exposure(2.8, 18, 4000)
+    ts = (2021, 3, 24, 23, 0, 0, 2, 83, -1)
+    endTime = time.mktime(ts)
 
-timelapse = Timelapse(startTime, endTime, startExposure, endExposure, civilStart, astroEnd)
-print("Timelapse: ", timelapse)
-#timelapse.Start()
+    ts = (2021, 3, 24, 20, 42, 0, 2, 83, -1)
+    civilStart = time.mktime(ts)
+
+    ts = (2021, 3, 24, 22, 4, 0, 2, 83, -1)
+    astroEnd = time.mktime(ts)
+
+
+    startExposure = Exposure(2.8, 1.6, 100)
+    endExposure = Exposure(2.8, 18, 4000)
+
+    timelapse = Timelapse(startTime, endTime, startExposure, endExposure, civilStart, astroEnd, 1)
+    print("Timelapse: ", timelapse)
+
+    for _ in range(30):
+        timelapse._AdjustExposure(startExposure)
+        print("Adjusted exposure: ", startExposure)
+    #timelapse.Start()
+
+TestTimelapseComputations()
