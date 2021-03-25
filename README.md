@@ -24,9 +24,9 @@ RAMPING
 
 Ramping requires the following inputs:
 
-    - Initial exposure settings (f-stop, shutter speed, ISO) for the **end** of civil twilight
+    - Initial exposure settings (f-stop, shutter speed, ISO) for the **start** of civil twilight
     - Final exposure values (f-stop, shutter speed, ISO) for **end** of astronomical twilight.
-    - Times for **end** of civil and astronomical twilights (TODO: compute)
+    - Times for **start** of civil and **end** of astronomical twilights (TODO: compute)
     - Maximum ISO and maximum exposure time
 
 At the start of the sequence, the initial exposure values are used to take the first
