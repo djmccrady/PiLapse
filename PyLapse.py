@@ -188,29 +188,54 @@ def TestExposureAdjustments():
     print("EV(fRatio-3) for ", exposure, " is ", exposure.GetExposureValue())
 
 
-def TestTimelapseComputations():
-    ts = (2021, 3, 24, 20, 0, 0, 2, 83, -1)
+def TestSunsetTimelapseComputations():
+    ts = (2021, 3, 26, 19, 30, 0, 4, 85, -1)
     startTime = time.mktime(ts)
 
-    ts = (2021, 3, 24, 23, 0, 0, 2, 83, -1)
+    ts = (2021, 3, 26, 23, 30, 0, 4, 85, -1)
     endTime = time.mktime(ts)
 
-    ts = (2021, 3, 24, 20, 42, 0, 2, 83, -1)
+    ts = (2021, 3, 26, 19, 31, 0, 4, 85, -1)
     civilStart = time.mktime(ts)
 
-    ts = (2021, 3, 24, 22, 4, 0, 2, 83, -1)
+    ts = (2021, 3, 26, 21, 17, 0, 4, 85, -1)
     astroEnd = time.mktime(ts)
 
 
-    startExposure = Exposure(2.8, 1.6, 100)
-    endExposure = Exposure(2.8, 18, 4000)
+    startExposure = Exposure(2.4, 1/1000, 100)
+    endExposure = Exposure(2.4, 20, 4000)
 
     timelapse = Timelapse(startTime, endTime, startExposure, endExposure, civilStart, astroEnd, 1)
     print("Timelapse: ", timelapse)
 
-    for _ in range(30):
+    for i in range(70):
         timelapse._AdjustExposure(startExposure)
-        print("Adjusted exposure: ", startExposure)
+        print("Adjusted exposure: ", startExposure, "step", i)
     #timelapse.Start()
 
-TestTimelapseComputations()
+def TestSunriseTimelapseComputations():
+    ts = (2021, 3, 26, 19, 30, 0, 4, 85, -1)
+    startTime = time.mktime(ts)
+
+    ts = (2021, 3, 26, 23, 30, 0, 4, 85, -1)
+    endTime = time.mktime(ts)
+
+    ts = (2021, 3, 26, 5, 13, 0, 4, 85, -1)
+    astroStart = time.mktime(ts)
+
+    ts = (2021, 3, 26, 6, 59, 0, 4, 85, -1)
+    civilEnd = time.mktime(ts)
+
+
+    startExposure = Exposure(2.4, 20, 4000)
+    endExposure = Exposure(2.4, 1/1000, 100)
+
+    timelapse = Timelapse(startTime, endTime, startExposure, endExposure, astroStart, civilEnd, -1)
+    print("Timelapse: ", timelapse)
+
+    for i in range(70):
+        timelapse._AdjustExposure(startExposure)
+        print("Adjusted exposure: ", startExposure, "step", i)
+    #timelapse.Start()
+
+TestSunriseTimelapseComputations()

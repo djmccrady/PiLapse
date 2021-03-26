@@ -27,7 +27,7 @@ Ramping requires the following inputs:
     - Initial exposure settings (f-stop, shutter speed, ISO) for the **start** of civil twilight
     - Final exposure values (f-stop, shutter speed, ISO) for **end** of astronomical twilight.
     - Times for **start** of civil and **end** of astronomical twilights (TODO: compute)
-    - Maximum ISO and maximum exposure time
+        - For sunrise, use the **start** of astronomical twilight and the **end** of civil twilight
 
 At the start of the sequence, the initial exposure values are used to take the first
 picture.  At intervals computed by PyLapse, the exposure values are changed in 1/3-stop
@@ -38,30 +38,32 @@ never adjusted; it remains constant throughout the exposure.
 
 EXAMPLE
 
-On Dec 21, 2020, civil twilight ends at 4:56pm, astronomical twilight ends at 5:35.  Let's
-say we want our timelapse to start at 4:30pm, and end at 7:00pm.  For the Canon R5, the
-maximum exposure time for spot stars is about 15 seconds (with a 14mm lens), and the maximum
+On March 26, 2021, civil twilight starts at 7:31pm, astronomical twilight ends at 9:17pm.  Let's
+say we want our timelapse to start at 7:00pm, and end at 11:30pm.  For the Canon 6D, the
+maximum exposure time for spot stars is about 20 seconds (with a 16mm lens), and the maximum
 ISO is 6400.
 
 Here are our variables:
 
-    - Interval chosen:  20s
-    - Start time:  4:30pm
-    - End time:  7:00pm
-    - Initial exposure (for civil twilight about EV+10, i.e ISO 100, f/2.4, 1/160s)
-    - Final exposure (after astro twilight about EV-7, i.e. ISO 6400, f/2.4, 15s)
-    - Max ISO: 6400 (get this from the final exposure above)
-    - Max exposure time: 15s (get this from the final exposure above)
+    - Start time:  7:00pm
+    - End time:  11:30pm
+    - Initial exposure (for civil twilight about EV+13, i.e ISO 100, f/2.4, 1/1000s)
+    - Final exposure (after astro twilight about EV-6.67, i.e. ISO 4000, f/2.4, 20s)
     - Twilight start/end times
+    - Extra 2 seconds between shots (one shot every 22 seconds)
 
-The duration of the timelapse is 2h30m, and with an exposure every 20s that's 450 exposures.
+The duration of the timelapse is 4h30m, and with an exposure every 20s that's 736 exposures.
+The duration between the start of civil twilight and the end of astro twilight is 1h46m, so
+we compute that we'll need to adjust the exposure by 1/3 stop every 1m48s.
 
-At 4:30pm the timelapse begins with the initial exposure settings of ISO 100, f/2.4, 1/160s).
-At 4:56pm after 78 exposures have been taken, the exposure ramping begins with computed changes
-happening every 45s (computed by PyLapse), and the next exposure will be 1/125s.  Approximately
-45s after that the shutter speed will increase to 1/100s. After 32 more exposures, the shutter 
-speed will have reached 15s, the maximum we've specified to keep the stars sharp.  PiLapse will
-then start ramping up the ISO from 100, until at 5:35pm (astronomical twilight) we will have
-fully ramped up to ISO 6400.  The remaining exposures will use the final exposure values (ISO 6400,
-f/2.4, 15s).
-
+At 7:00pm we start the timelapse with our initial exposure settings of ISO 100, f/2.4, 1/1000s.
+We keep shooting at this exposure until civil twilight begins, about 84 shots.  At 1m48s past
+the start of civil twilight, the exposure will be adjusted down by 1/3 stop, to ISO 100, f/2.4, 
+1/800s.  After another 1m48s, the exposure will be adjusted to ISO 100, f/2.4, 1/640s.  After
+42 adjustments have been made to the shutter speed, we will have reached our maximum shuttter
+speed of 20s (ISO 100, f/2.4, 20s).  Since we still haven't reached the end of astro twilight,
+we therefore start adjusting the ISO instead.  After the next 1m48s interval, we'll adjust the
+exposure to ISO 125, f/2.4, 20s.  Then ISO 160, f/2.4, 20s, etc.  By the time astro twilight
+ends we will have done a total of 58 exposure adjustments and will have reached our final
+exposure of ISO 4000, f/2.4, 20s.  We will keep using this exposure until 11:30pm when the
+timelapse ends.
