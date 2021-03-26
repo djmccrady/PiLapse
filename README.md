@@ -40,8 +40,8 @@ EXAMPLE
 
 On March 26, 2021, civil twilight starts at 7:31pm, astronomical twilight ends at 9:17pm.  Let's
 say we want our timelapse to start at 7:00pm, and end at 11:30pm.  For the Canon 6D, the
-maximum exposure time for spot stars is about 20 seconds (with a 16mm lens), and the maximum
-ISO is 6400.
+maximum exposure time for spot stars is about 20 seconds (with a 14mm lens), and the maximum
+ISO is 4000.
 
 Here are our variables:
 
