@@ -52,9 +52,10 @@ Here are our variables:
     - Twilight start/end times
     - Extra 2 seconds between shots (one shot every 22 seconds)
 
-The duration of the timelapse is 4h30m, and with an exposure every 20s that's 736 exposures.
+The duration of the timelapse is 4h30m, and with an exposure every 22s that's 736 exposures.
 The duration between the start of civil twilight and the end of astro twilight is 1h46m, so
-we compute that we'll need to adjust the exposure by 1/3 stop every 1m48s.
+we compute that we'll need to adjust the exposure by 1/3 stop every 1m48s after the start
+of civil twilight.
 
 At 7:00pm we start the timelapse with our initial exposure settings of ISO 100, f/2.4, 1/1000s.
 We keep shooting at this exposure until civil twilight begins, about 84 shots.  At 1m48s past

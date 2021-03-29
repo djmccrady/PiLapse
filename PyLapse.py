@@ -93,6 +93,10 @@ class Timelapse:
         self.endTwilight = endTwilight
         self.direction = direction
 
+        if startTime > beginTwilight:
+            print("Start time begins after twilight start... adjusting twilight start.")
+            self.beginTwilight = startTime
+
         # interval between shots is the longest exposure time + __INTERVAL_EXTRA to allow camera buffer read
         self.shootingInterval = round(max(startExposure.shutter, endExposure.shutter)) + Timelapse.__INTERVAL_EXTRA
         self._computeAdjustmentInterval()
